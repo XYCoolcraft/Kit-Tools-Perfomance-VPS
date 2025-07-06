@@ -2,197 +2,138 @@
 
 # ================================================================= #
 #                XYCoolcraft | Tools Performance VPS                #
+#                   Versi Diperbaiki & Stabil                     #
 # ================================================================= #
 
 # --- Variabel Warna ---
-# Variabel ini digunakan untuk memberi warna pada output teks.
 MERAH='\033[0;31m'
 HIJAU='\033[0;32m'
-COKELAT='\033[0;33m' # Menggunakan warna Kuning yang lebih umum didukung
+COKELAT='\033[0;33m' # Kuning/Cokelat
 BIRU='\033[0;34m'
-NC='\033[0m' # No Color (untuk mereset warna ke default)
+NC='\033[0m' # No Color
 
 # --- Konfigurasi Token ---
-# Ganti "XAYZCOLD" dengan token rahasia yang Anda inginkan.
 TOKEN_BENAR="XAYZCOLD"
 
-# --- Fungsi untuk meminta konfirmasi dari pengguna ---
-# Fungsi ini akan menampilkan pesan dan menunggu jawaban Y/N.
-# Mengembalikan status 'true' (0) jika jawaban "yes" dan 'false' (1) jika "no".
-konfirmasi_aksi() {
-    local pesan_prompt="$1"
-    while true; do
-        read -p "$(echo -e ${BIRU}"$pesan_prompt [ (Y)es / (N)o ]: "${NC})" jawaban
-        case $jawaban in
-            [Yy]* | [Yy][Ee][Ss] ) return 0;; # Jika input Y, y, Yes, yes, dll.
-            [Nn]* | [Nn][Oo]     ) return 1;; # Jika input N, n, No, no, dll.
-            * ) echo "Input tidak valid. Silakan jawab 'yes' atau 'no'.";;
-        esac
-    done
-}
-
-# --- Fungsi untuk menampilkan layar otentikasi token ---
-# Fungsi ini bertanggung jawab untuk tampilan awal dan validasi token.
-minta_token() {
-    clear
-    echo -e "${COKELAT}"
-    echo "||============================================||"
-    echo "||                                            ||"
-    echo "||                                            ||" 
-    echo "||                                            ||"
-    echo "||     XYCoolcraft | Tools Performance VPS      ||"
-    echo "||                                            ||"
-    echo "||                                            ||"
-    echo "||                                            ||"
-    echo "||============================================||"
-    echo "||                                            ||"
-    echo "||                                            ||"
-    echo "||         PLEASE ENTER THE TOKEN🔐:          ||"
-    echo "||                                            ||"
-    echo "||                                            ||"
-    echo "||============================================||${NC}"
-    read -p ">> " TOKEN_MASUKAN
-
-    # Memeriksa apakah token yang dimasukkan benar
-    if [ "$TOKEN_MASUKAN" == "$TOKEN_BENAR" ]; then
-        clear
-        echo -e "${HIJAU}"
-        echo "###"
-        echo "/\\ KEY TOKEN SUCCESSFULL✅"
-        echo "###${NC}"
-        sleep 2 # Jeda 2 detik agar pesan bisa dibaca
-    else
-        clear
-        echo -e "${MERAH}"
-        echo "❌❌❌❌❌❌"
-        echo "\\/ KEY TOKEN WRONG❌"
-        echo "❌❌❌❌❌❌${NC}"
-        exit 1 # Keluar dari skrip jika token salah
+# --- Fungsi untuk memastikan skrip dijalankan sebagai root ---
+cek_root() {
+    # Periksa apakah User ID (EUID) adalah 0 (root)
+    if [[ $EUID -ne 0 ]]; then
+       echo -e "${MERAH}Error: Skrip ini harus dijalankan sebagai root!${NC}"
+       exit 1
     fi
 }
 
-# --- Fungsi untuk mendeteksi OS dan menampilkan logo ASCII ---
-# Mendeteksi OS dari file /etc/os-release dan menampilkan logo yang sesuai.
+# --- Fungsi otentikasi token ---
+minta_token() {
+    clear
+    # Tampilan menggunakan echo dengan heredoc untuk kerapian
+    echo -e "${COKELAT}"
+cat << "EOF"
+||============================================||
+||                                            ||
+||                                            ||
+||     XYCoolcraft | Tools Performance VPS      ||
+||                                            ||
+||                                            ||
+||============================================||
+||                                            ||
+||         PLEASE ENTER THE TOKEN🔐:          ||
+||                                            ||
+||============================================||
+EOF
+    echo -ne "${NC}>> " # -ne agar kursor tetap di baris yang sama
+    read -r TOKEN_MASUKAN
+
+    if [ "$TOKEN_MASUKAN" == "$TOKEN_BENAR" ]; then
+        clear
+        echo -e "${HIJAU}\n###\n/\\ KEY TOKEN SUCCESSFULL✅\n###\n${NC}"
+        sleep 2
+    else
+        clear
+        echo -e "${MERAH}\n❌❌❌❌❌❌\n\\/ KEY TOKEN WRONG❌\n❌❌❌❌❌❌\n${NC}"
+        exit 1
+    fi
+}
+
+# --- Fungsi untuk menampilkan logo OS ---
 tampilkan_logo_os() {
     local os_id="unknown"
     if [ -f /etc/os-release ]; then
         . /etc/os-release
         os_id=$ID
     fi
-
-    echo -e "${HIJAU}" # Memberi warna hijau pada logo
+    # ASCII art disederhanakan dan diberi warna
+    echo -e "${HIJAU}"
     case $os_id in
-        ubuntu)
-            echo '
-    _
-  / _|
- | |_ ___  _ __ __ _ _ __   __ _
- |  _/ _ \|  __/ _` |  _ \ / _` |
- | || (_) | | | (_| | | | | (_| |
- |_| \___/|_|  \__,_|_| |_|\__,_|
-                                '
-            ;;
-        debian)
-            echo '
-   _
-  / \   _ __  _ __
- / _ \ |  _ \|  _ \
-/ ___ \| | | | | | |
-\/   \/|_| |_|_| |_|
-                   '
-            ;;
-        centos|rhel|almalinux|rocky)
-            echo '
-   ____ ____  _   _ ____ _____
-  / ___/ ___|| \ | / ___|_   _|
- | |  | |    |  \| \___ \ | |
- | |__| |___ | |\  |___) || |
-  \____\____||_| \_|____/ |_|
-                             '
-            ;;
-        *)
-            echo "OS Terdeteksi: $os_id"
-            ;;
+        ubuntu) echo "Ubuntu" ;;
+        debian) echo "Debian" ;;
+        centos|rhel|almalinux|rocky) echo "CentOS/RHEL" ;;
+        *) echo "OS: $os_id" ;;
     esac
+    # Anda bisa menambahkan ASCII art yang lebih kompleks di sini jika mau
     echo -e "${NC}"
-    echo
 }
 
+# --- Fungsi utama untuk menampilkan menu dan memproses pilihan ---
+menu_utama() {
+    while true; do
+        clear
+        tampilkan_logo_os
+        # Menu menggunakan echo dengan heredoc
+        echo -e "${BIRU}"
+cat << "MENU"
+||==================================================================||
+           MENU KIT TOOLS PERFOMANCE VPS
+--------------------------------------------------------------------
+ 1. Update System Operation And Software
+ 2. Check Version MySQL
+ 3. Clear Cache (Membersihkan RAM)
+ 4. Check RAM Usage
+ 5. Check Disk Usage
+ 6. Restart Server
+ 7. Evaluation Performance Disk
+ 8. Evaluation Performance CPU
+ 9. Exit
+--------------------------------------------------------------------
+||==================================================================||
+MENU
+        echo -e "${NC}"
+        read -p "Pilih menu [1-9]: " pilihan
 
-# --- Fungsi untuk menampilkan menu utama ---
-# Membersihkan layar dan menampilkan semua opsi yang tersedia.
-tampilkan_menu() {
-    clear
-    tampilkan_logo_os
-    echo -e "${BIRU}"
-    echo "||==================================================================||"
-    echo ""
-    echo "           MENU KIT TOOLS PERFOMANCE VPS"
-    echo "--------------------------------------------------------------------"
-    echo " 1. Update System Operation And Software"
-    echo " 2. Check Version MySQL"
-    echo " 3. Clear Cache (Membersihkan RAM)"
-    echo " 4. Check RAM Usage"
-    echo " 5. Check Disk Usage"
-    echo " 6. Restart Server"
-    echo " 7. Evaluation Performance Disk"
-    echo " 8. Evaluation Performance CPU"
-    echo " 9. Exit"
-    echo "--------------------------------------------------------------------"
-    echo "||==================================================================||${NC}"
+        case $pilihan in
+            1) jalankan_perintah "apt-get update && apt-get upgrade -y" ;;
+            2) jalankan_perintah "mysql -V || echo 'MySQL client tidak terinstall.'" ;;
+            3) jalankan_perintah "sync; echo 3 > /proc/sys/vm/drop_caches" ;;
+            4) jalankan_perintah "free -m" ;;
+            5) jalankan_perintah "df -h" ;;
+            6) jalankan_perintah "reboot" ;;
+            7) jalankan_perintah "echo 'Testing disk write speed...'; dd if=/dev/zero of=tmpfile bs=1M count=256 conv=fdatasync; rm -f tmpfile" ;;
+            8) jalankan_perintah "echo 'Testing CPU performance...'; dd if=/dev/zero bs=1M count=1024 | md5sum" ;;
+            9) echo -e "${HIJAU}Terima kasih telah menggunakan tools ini!${NC}"; exit 0 ;;
+            *) echo -e "${MERAH}Pilihan tidak valid!${NC}"; sleep 2 ;;
+        esac
+    done
 }
 
-# --- Pengecekan Hak Akses Root ---
-# Beberapa perintah memerlukan akses root, jadi skrip akan berhenti jika tidak dijalankan sebagai root.
-if [[ $EUID -ne 0 ]]; then
-   echo -e "${MERAH}Error: Skrip ini harus dijalankan sebagai root!${NC}"
-   exit 1
-fi
-
-# --- Alur Utama Skrip ---
-# 1. Jalankan fungsi otentikasi token terlebih dahulu.
-minta_token
-
-# 2. Masuk ke loop menu utama yang akan terus berjalan sampai pengguna memilih 'Exit'.
-while true; do
-    tampilkan_menu
-    read -p "Pilih menu [1-9]: " pilihan
-
-    # Menangani jika pengguna hanya menekan Enter tanpa memilih.
-    if [ -z "$pilihan" ]; then
-        echo -e "${MERAH}Pilihan tidak boleh kosong! Kembali ke menu...${NC}"
-        sleep 2
-        continue
-    fi
-
-    # Menentukan perintah yang akan dijalankan berdasarkan pilihan.
-    case $pilihan in
-        1) CMD="apt-get update && apt-get upgrade -y" ;;
-        2) CMD="mysql -V" ;; # -V (kapital) adalah flag yang benar untuk versi
-        3) CMD="sync; echo 3 > /proc/sys/vm/drop_caches" ;;
-        4) CMD="free -m" ;;
-        5) CMD="df -h" ;;
-        6) CMD="reboot" ;;
-        7) CMD="echo 'Testing disk write speed...'; dd if=/dev/zero of=tmpfile bs=1M count=512 conv=fdatasync; rm -f tmpfile" ;;
-        8) CMD="echo 'Testing CPU performance...'; dd if=/dev/zero bs=1M count=1024 | md5sum" ;;
-        9) echo -e "${HIJAU}Terima kasih telah menggunakan tools ini!${NC}"; exit 0 ;;
-        *)
-            echo -e "${MERAH}Pilihan tidak valid!${NC}"
-            sleep 2
-            continue # Kembali ke awal loop jika pilihan salah
-            ;;
-    esac
-
-    # Meminta konfirmasi sebelum menjalankan perintah
-    if konfirmasi_aksi "Apakah Anda yakin ingin melanjutkan?"; then
+# --- Fungsi untuk konfirmasi dan menjalankan perintah ---
+jalankan_perintah() {
+    local PERINTAH_UNTUK_DIJALANKAN="$1"
+    read -p "$(echo -e ${COKELAT}Apakah Anda yakin ingin melanjutkan? [y/N]: ${NC})" jawaban
+    # Default ke "No" jika pengguna hanya menekan Enter
+    if [[ "$jawaban" =~ ^[Yy]$ ]]; then
         echo -e "${HIJAU}--- Menjalankan Perintah ---${NC}"
-        # Menjalankan perintah yang sudah dipilih
-        eval $CMD
+        eval "$PERINTAH_UNTUK_DIJALANKAN"
         echo -e "${HIJAU}--- Selesai ---${NC}"
-        echo "Tekan Enter untuk kembali ke menu..."
-        read # Menunggu pengguna menekan Enter sebelum menampilkan menu lagi
+        read -p "Tekan Enter untuk kembali ke menu..."
     else
-        echo -e "${COKELAT}Operasi dibatalkan. Kembali ke menu...${NC}"
+        echo -e "${MERAH}Operasi dibatalkan.${NC}"
         sleep 2
     fi
-done
+}
+
+
+# --- Alur Eksekusi Utama ---
+cek_root
+minta_token
+menu_utama
