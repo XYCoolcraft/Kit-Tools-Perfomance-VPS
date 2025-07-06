@@ -2,7 +2,7 @@
 
 # ================================================================= #
 #                XYCoolcraft | Tools Performance VPS                #
-#               Versi 7.0 - Final dengan Semua Fitur                #
+#                  Versi 8.0 - Menu Terperinci                      #
 # ================================================================= #
 
 # --- Variabel Warna ---
@@ -23,16 +23,24 @@ cek_root() {
 }
 
 deteksi_installer() {
+    # Mendeteksi package manager dan menyimpannya dalam variabel
     if command -v apt-get &> /dev/null; then
-        INSTALL_CMD="apt-get install -y"
+        PKG_MANAGER="apt-get"
     elif command -v dnf &> /dev/null; then
-        INSTALL_CMD="dnf install -y"
+        PKG_MANAGER="dnf"
     elif command -v yum &> /dev/null; then
-        INSTALL_CMD="yum install -y"
+        PKG_MANAGER="yum"
+    else
+        PKG_MANAGER=""
+    fi
+    # Menyiapkan perintah instalasi lengkap
+    if [ -n "$PKG_MANAGER" ]; then
+        INSTALL_CMD="$PKG_MANAGER install -y"
     else
         INSTALL_CMD=""
     fi
 }
+
 
 # --- Fungsi Tampilan & Animasi ---
 minta_token() {
@@ -80,27 +88,16 @@ install_package() {
     fi
 }
 
-# Fungsi BARU untuk mengecek jumlah server
 cek_jumlah_server() {
-    echo -e "${BIRU}Mengecek jumlah Panel dan Server...${NC}"
-    local panel_count=0
-    local server_count=0
-    # Cek Pterodactyl Panel
-    if [ -d "/var/www/pterodactyl" ]; then
-        panel_count=1
-    fi
-    # Cek server di dalam Wings
-    if [ -d "/var/lib/pterodactyl/volumes" ]; then
-        # Menghitung jumlah direktori di dalam folder volumes
-        server_count=$(find /var/lib/pterodactyl/volumes/* -maxdepth 0 -type d 2>/dev/null | wc -l)
-    fi
+    echo -e "${BIRU}Mengecek jumlah Panel dan Server...${NC}"; local panel_count=0; local server_count=0
+    if [ -d "/var/www/pterodactyl" ]; then panel_count=1; fi
+    if [ -d "/var/lib/pterodactyl/volumes" ]; then server_count=$(find /var/lib/pterodactyl/volumes/* -maxdepth 0 -type d 2>/dev/null | wc -l); fi
     echo "-----------------------------------------"
     echo -e "${HIJAU}Jumlah Panel Pterodactyl Terdeteksi: $panel_count${NC}"
     echo -e "${HIJAU}Jumlah Server (Wings) Terdeteksi: $server_count${NC}"
     echo "-----------------------------------------"
     read -p "Tekan Enter untuk kembali..."
 }
-
 
 # --- Fungsi Menu Utama ---
 menu_utama() {
@@ -116,55 +113,60 @@ cat << "MENU"
  1. Cek Jumlah Panel & Server Terpasang
  2. Install Pterodactyl Panel
  3. Install Pterodactyl Wings
- 4. Start/Status Wings Service
+ 4. Start Wings Service
+ 5. Stop Wings Service
+ 6. Restart Wings Service
+ 7. View Wings Service Status
 
 --- AI Assistant (ChatGPT) ---
- 5. Install & Configure AI (ShellGPT)
- 6. Run AI Assistant (ChatGPT)
+ 8. Install & Configure AI (ShellGPT)
+ 9. Run AI Assistant (ChatGPT)
 
 --- Real-Time Monitoring ---
- 7. View System Monitoring
- 8. System Framework at Work
- 9. Real-Time All Systems
- 10. Install Monitoring Tools
+ 10. View System Monitoring
+ 11. System Framework at Work
+ 12. Real-Time All Systems
+ 13. Install Monitoring Tools
 
 --- System Maintenance ---
- 11. Update System & Software
- 12. Check MySQL Version
- 13. Clear Cache
- 14. Check RAM & Disk
- 15. Restart Server
- 16. Exit
+ 14. Update Package Lists
+ 15. Upgrade System Software
+ 16. Check MySQL Version
+ 17. Clear Cache
+ 18. Check RAM & Disk
+ 19. Evaluation Perfomance Disk
+ 20. Evaluation Perfomance CPU
+ 21. Restart Server
+ 22. Exit
 --------------------------------------------------------------------
 ||==================================================================||
 MENU
         echo -e "${NC}"
-        read -p "Pilih menu [1-16]: " pilihan
+        read -p "Pilih menu [1-22]: " pilihan
 
         case $pilihan in
-            # --- Panel ---
             1) cek_jumlah_server ;;
             2) jalankan_perintah "bash <(curl -s https://pterodactyl-installer.se/install.sh)" ;;
             3) jalankan_perintah "bash <(curl -s https://pterodactyl-installer.se/wings.sh)" ;;
-            4) jalankan_perintah "systemctl status wings || systemctl start wings" ;;
-
-            # --- AI ---
-            5) jalankan_perintah "apt-get install -y python3-pip && pip install shell-gpt && sgpt --install-integration" ;;
-            6) if command -v sgpt &> /dev/null; then sgpt; else echo -e "${MERAH}AI (sgpt) belum terinstall. Pilih menu 5.${NC}"; sleep 3; fi ;;
-
-            # --- Monitoring ---
-            7) if command -v htop &> /dev/null; then htop; else echo -e "${MERAH}htop belum terinstall.${NC}"; sleep 2; fi ;;
-            8) top ;;
-            9) if command -v glances &> /dev/null; then glances; else echo -e "${MERAH}glances belum terinstall.${NC}"; sleep 2; fi ;;
-            10) install_package "htop glances" ;;
-
-            # --- Maintenance ---
-            11) jalankan_perintah "apt-get update && apt-get -y upgrade || $INSTALL_CMD update -y" ;;
-            12) jalankan_perintah "mysql -V || echo 'MySQL client tidak terinstall.'" ;;
-            13) jalankan_perintah "sync; echo 3 > /proc/sys/vm/drop_caches" ;;
-            14) jalankan_perintah "free -m && echo '---' && df -h" ;;
-            15) jalankan_perintah "reboot" ;;
-            16) echo -e "${HIJAU}Terima kasih!${NC}"; exit 0 ;;
+            4) jalankan_perintah "systemctl start wings" ;;
+            5) jalankan_perintah "systemctl stop wings" ;;
+            6) jalankan_perintah "systemctl restart wings" ;;
+            7) jalankan_perintah "systemctl status wings" ;;
+            8) jalankan_perintah "apt-get install -y python3-pip && pip install shell-gpt && sgpt --install-integration" ;;
+            9) if command -v sgpt &> /dev/null; then sgpt; else echo -e "${MERAH}AI (sgpt) belum terinstall. Pilih menu 8.${NC}"; sleep 3; fi ;;
+            10) if command -v htop &> /dev/null; then htop; else echo -e "${MERAH}htop belum terinstall.${NC}"; sleep 2; fi ;;
+            11) top ;;
+            12) if command -v glances &> /dev/null; then glances; else echo -e "${MERAH}glances belum terinstall.${NC}"; sleep 2; fi ;;
+            13) install_package "htop glances" ;;
+            14) jalankan_perintah "$PKG_MANAGER update" ;;
+            15) jalankan_perintah "$PKG_MANAGER upgrade -y" ;;
+            16) jalankan_perintah "mysql -V || echo 'MySQL client tidak terinstall.'" ;;
+            17) jalankan_perintah "sync; echo 3 > /proc/sys/vm/drop_caches" ;;
+            18) jalankan_perintah "free -m && echo '---' && df -h" ;;
+            19) jalankan_perintah "echo '--> Disk Performance Test <--'; dd if=/dev/zero of=tmpfile bs=1M count=128 conv=fdatasync; rm -f tmpfile" ;;
+            20) jalankan_perintah "echo '--> CPU Performance Test <--'; dd if=/dev/zero bs=1M count=256 | md5sum" ;;
+            21) jalankan_perintah "reboot" ;;
+            22) echo -e "${HIJAU}Terima kasih!${NC}"; exit 0 ;;
             *) echo -e "${MERAH}Pilihan tidak valid!${NC}"; sleep 2 ;;
         esac
     done
