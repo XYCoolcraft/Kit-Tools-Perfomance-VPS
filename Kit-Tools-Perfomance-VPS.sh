@@ -148,7 +148,7 @@ cat << "MENU"
 ||==================================================================||
            MENU KIT TOOLS PERFOMANCE VPS
 --------------------------------------------------------------------
---- Game Panel Management (Pterodactyl) ---
+--- Panel Management (Pterodactyl) ---
  1. Cek Jumlah Panel & Server Terpasang
  2. Install Pterodactyl Panel
  3. Install Pterodactyl Wings
